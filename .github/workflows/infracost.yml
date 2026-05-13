@@ -1,0 +1,49 @@
+name: Infracost
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  infracost:
+    name: Cost Estimation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v3
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Generate Infracost JSON (simple)
+        run: |
+          infracost breakdown \
+            --path=examples/simple \
+            --format=json \
+            --out-file=/tmp/infracost-simple.json
+
+      - name: Generate Infracost JSON (complete)
+        run: |
+          infracost breakdown \
+            --path=examples/complete \
+            --format=json \
+            --out-file=/tmp/infracost-complete.json
+
+      - name: Generate Infracost diff
+        run: |
+          infracost diff \
+            --path=examples/complete \
+            --format=json \
+            --compare-to=/tmp/infracost-simple.json \
+            --out-file=/tmp/infracost-diff.json
+
+      - name: Post Infracost comment
+        uses: infracost/actions/comment@v1
+        with:
+          path: /tmp/infracost-complete.json
+          behavior: update
