@@ -1,0 +1,18 @@
+project_id   = "your-gcp-project-id"
+cluster_name = "my-gke-spot"
+zone         = "us-central1-a"
+node_count   = 3
+machine_type = "e2-medium"
+spot_enabled = true
+disk_size_gb = 50
+
+min_node_count = 1
+max_node_count = 5
+
+enable_network_policy = true
+
+labels = {
+  environment = "dev"
+  managed_by  = "terraform"
+  cost        = "spot"
+}

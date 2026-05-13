@@ -1,0 +1,59 @@
+name: Terraform CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init (module)
+        working-directory: modules/gke-cluster
+        run: terraform init -backend=false
+
+      - name: Terraform Validate (module)
+        working-directory: modules/gke-cluster
+        run: terraform validate
+
+      - name: Terraform Init (example simple)
+        working-directory: examples/simple
+        run: terraform init -backend=false
+
+      - name: Terraform Validate (example simple)
+        working-directory: examples/simple
+        run: terraform validate
+
+      - name: Terraform Init (example complete)
+        working-directory: examples/complete
+        run: terraform init -backend=false
+
+      - name: Terraform Validate (example complete)
+        working-directory: examples/complete
+        run: terraform validate
+
+  docs:
+    name: Docs Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check terraform-docs
+        uses: terraform-docs/gh-actions@v1
+        with:
+          working-dir: modules/gke-cluster
+          output-method: inject
+          git-push: "false"
+          fail-on-diff: "true"
